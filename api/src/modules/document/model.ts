@@ -29,6 +29,7 @@ import { init } from './listenerManager';
 import { getChildLogger } from '../../logger';
 import DocumentDriveError from '../../errors/DocumentDriveError';
 import { initRedis } from '../../redis';
+import { RealWorldAssetsDocument, utils } from 'document-model-libs/real-world-assets';
 // import { ScopeOfWorkAction, ScopeOfWorkDocument } from '../../../../../document-model-libs/dist/document-models/scope-of-work';
 
 const logger = getChildLogger({ msgPrefix: 'Document Model' });
@@ -232,7 +233,10 @@ export function getDocumentDriveCRUD(prisma: Prisma.TransactionClient) {
       driveId: string,
       documentId: string,
     ) => {
-      const document = await driveServer.getDocument(driveId, documentId);
+      let document = await driveServer.getDocument(driveId, documentId);
+      if (document.documentType === 'makerdao/rwa-portfolio') {
+        document = utils.makeRwaDocumentWithAssetCurrentValues(document as RealWorldAssetsDocument);
+      }
       const response = {
         ...document,
         id: documentId,
