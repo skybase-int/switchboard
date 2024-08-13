@@ -1,0 +1,70 @@
+replicaCount: 2
+service:
+  enabled: true
+  name: ${APP_NAME}
+
+  port: ${PORT}
+  type: ClusterIP
+  containerPort: ${PORT}
+  tls:
+    enabled: true
+    issuerName: cloudflare
+
+image:
+  repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
+  tag: ${IMAGE_TAG}
+  pullPolicy: Always
+
+serviceAccount:
+  create: false
+
+ingress:
+  enabled: false
+  # hosts:
+  #   - ${ENDPOINT}
+  # annotations:
+  #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+
+httpBasicAuth:
+  enabled: false
+
+# If enabled will create Traefik Middleware and apply to Ingress
+# to redirect http to https and www to non-www
+httpWwwRedirect:
+  enabled: false
+
+podAnnotations:
+  reloader.stakater.com/auto: "true"
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 256Mi
+
+env:
+  NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST:
+    type: parameterStore
+    name: next-public-switchboard-graphql-host
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/next-public-switchboard-graphql-host
+
+externalSecrets:
+  clusterSecretStoreName: ${CLUSTER_NAME}
+
+livenessProbe:
+  httpGet:
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+
+autoscaling:
+  enabled: false

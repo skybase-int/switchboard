@@ -1,0 +1,103 @@
+replicaCount: 2
+service:
+  enabled: true
+  name: ${APP_NAME}
+
+  port: ${PORT}
+  type: ClusterIP
+  containerPort: ${PORT}
+  tls:
+    enabled: true
+    issuerName: cloudflare
+
+image:
+  repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
+  tag: ${IMAGE_TAG}
+  pullPolicy: Always
+
+serviceAccount:
+  create: false
+
+ingress:
+  enabled: false
+  # hosts:
+  #   - ${ENDPOINT}
+  # annotations:
+  #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+
+httpBasicAuth:
+  enabled: false
+
+# If enabled will create Traefik Middleware and apply to Ingress
+# to redirect http to https and www to non-www
+httpWwwRedirect:
+  enabled: false
+
+podAnnotations:
+  reloader.stakater.com/auto: "true"
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 256Mi
+
+env:
+  PORT:
+    type: kv
+    value: ${PORT}
+  BASE_PATH:
+    type: kv
+    value: "/api"
+  TZ:
+    type: kv
+    value: "UTC"
+  DATABASE_URL:
+    type: parameterStore
+    name: database-url
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/database-url
+  REDIS_TLS_URL:
+    type: parameterStore
+    name: redis-tls-url
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/redis-tls-url
+  JWT_SECRET:
+    type: parameterStore
+    name: jwt-secret
+    parameter_name: /eks/${CLUSTER_NAME}/${PP_NAME}/jwt-secret
+  JWT_EXPIRATION_PERIOD_SECONDS:
+    type: parameterStore
+    name: jwt-expiration-period-seconds
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/jwt-expiration-period-seconds
+  ADMIN_USERS:
+    type: parameterStore
+    name: admin-users
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/admin-users
+  AUTH_SIGNUP_ENABLED:
+    type: parameterStore
+    name: auth-signup-enabled
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/auth-signup-enabled
+  ORIGINS:
+    type: parameterStore
+    name: origins
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/origins
+
+externalSecrets:
+  clusterSecretStoreName: ${CLUSTER_NAME}
+
+livenessProbe:
+  httpGet:
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+
+autoscaling:
+  enabled: false

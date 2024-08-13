@@ -1,0 +1,200 @@
+name: Build and deploy app (staging)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch: # on button click
+  push:
+    branches:
+      - deployments/staging/makerdao
+
+env:
+  APP_NAME: switchboard
+  API_APP_NAME: switchboard-api
+  FRONTEND_APP_NAME: switchboard-frontend
+  NGINX_APP_NAME: switchboard-nginx-ingress
+  CLUSTER_NAME: ${{ secrets.STAGING_CLUSTER_NAME }}
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.STAGING_AWS_REGION }}.amazonaws.com
+  API_ECR_REPO_NAME: switchboard-api-staging
+  FRONTEND_ECR_REPO_NAME: switchboard-frontend-staging
+  ENV: staging
+  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }} # The base domain to use for the k8s endpoints
+
+jobs:
+  setup:
+    name: Setup workflow
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.get_commit_hash.outputs.sha_short }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get commit hash
+        id: get_commit_hash
+        shell: bash
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+  build-api:
+    name: Build image for api
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+    if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip build]')
+    env:
+      SHA_SHORT: ${{ needs.setup.outputs.sha_short }}
+
+    steps:
+      - name: Checkout all files
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Build, tag, and push image to ECR
+        id: build_image
+        uses: ./.github/actions/build
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.STAGING_AWS_REGION }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPO_NAME: ${{ env.API_ECR_REPO_NAME }}
+          SHA_TAG: ${{ env.SHA_SHORT }}
+          BUILD_CONTEXT: ./api
+
+  build-frontend:
+    name: Build image for frontend
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+    if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip build]')
+    env:
+      SHA_SHORT: ${{ needs.setup.outputs.sha_short }}
+      ECR_REPO_NAME: switchboard-frontend-staging
+
+    steps:
+      - name: Checkout all files
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Build, tag, and push image to ECR
+        id: build_image
+        uses: ./.github/actions/build
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.STAGING_AWS_REGION }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPO_NAME: ${{ env.FRONTEND_ECR_REPO_NAME }}
+          SHA_TAG: ${{ env.SHA_SHORT }}
+          BUILD_CONTEXT: ./frontend
+          NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST: ${{ secrets.NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST }}
+
+  deploy-api:
+    name: Deploy image
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+      - build-api
+    if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip deploy]')
+    env:
+      ECR_REPO_NAME: switchboard-api-staging
+      HELM_VALUES: deploy/values_api.yml
+
+    steps:
+      - name: Checkout actions
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+
+      - name: Deploy image to EKS
+        id: deploy_image
+        uses: ./.github/actions/deploy
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.STAGING_AWS_REGION }}
+          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPO_NAME: ${{ env.API_ECR_REPO_NAME }}
+          APP_NAME: ${{ env.API_APP_NAME }}
+          HELM_VALUES: ${{ env.HELM_VALUES }}
+
+  deploy-frontend:
+    name: Deploy image
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+      - build-frontend
+    if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip deploy]')
+    env:
+      ECR_REPO_NAME: switchboard-frontend-staging
+      HELM_VALUES: deploy/values_frontend.yml
+
+    steps:
+      - name: Checkout actions
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+
+      - name: Deploy image to EKS
+        id: deploy_image
+        uses: ./.github/actions/deploy
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.STAGING_AWS_REGION }}
+          CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPO_NAME: ${{ env.ECR_REPO_NAME }}
+          APP_NAME: ${{ env.FRONTEND_APP_NAME }}
+          HELM_VALUES: ${{ env.HELM_VALUES }}
+
+  deploy-nginx:
+    name: Deploy nginx ingress
+    runs-on: ubuntu-latest
+    needs:
+      - setup
+      - build-frontend
+      - build-api
+      - deploy-frontend
+      - deploy-api
+    if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip deploy]')
+    env:
+      ENDPOINT: ${{ env.ENDPOINT }}
+      HELM_VALUES: deploy/values_nginx.yml
+      PORT: ${{ inputs.PORT }}
+      BASE_PATH: "/api"
+
+    steps:
+      - name: Replace variables in Helm values file
+        id: replace_vars
+        shell: sh
+        run: |
+          cp $HELM_VALUES temp.yml
+          envsubst < temp.yml > $HELM_VALUES
+          rm -f temp.yml
+          cat $HELM_VALUES
+
+      - name: Deploy to EKS with Helm
+        id: deploy_nginx
+        uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
+        with:
+          cluster-name: ${{ env.CLUSTER_NAME }}
+          config-files: deploy/values_nginx.yml
+          chart-path: nginx-stable/nginx-ingress
+          namespace: ${{ env.APP_NAME }}
+          timeout: 3m0s
+          name: ${{ env.NGINX_APP_NAME }}
+          chart-repository: https://helm.nginx.com/stable
+          version: 1.3.1
+          atomic: true
