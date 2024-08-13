@@ -170,7 +170,7 @@ jobs:
       - deploy-api
     if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip deploy]')
     env:
-      ENDPOINT: ${{ env.ENDPOINT }}
+      ENDPOINT: ${{ env.APP_NAME }}-${{ env.ENV }}.${{ env.DOMAIN_NAME }}
       HELM_VALUES: deploy/values_nginx.yml
       PORT: ${{ inputs.PORT }}
       BASE_PATH: "/api"
