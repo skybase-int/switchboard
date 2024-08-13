@@ -170,15 +170,16 @@ jobs:
       - deploy-api
     if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip deploy]')
     env:
-      ENDPOINT: ${{ env.APP_NAME }}-${{ env.ENV }}.${{ env.DOMAIN_NAME }}
       HELM_VALUES: deploy/values_nginx.yml
-      PORT: ${{ inputs.PORT }}
       BASE_PATH: "/api"
 
     steps:
       - name: Replace variables in Helm values file
         id: replace_vars
         shell: sh
+        env:
+          ENDPOINT: ${{ env.APP_NAME }}-${{ env.ENV }}.${{ env.DOMAIN_NAME }}
+          PORT: 3000
         run: |
           cp $HELM_VALUES temp.yml
           envsubst < temp.yml > $HELM_VALUES
