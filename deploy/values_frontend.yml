@@ -44,12 +44,6 @@ resources:
     cpu: 500m
     memory: 256Mi
 
-env:
-  NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST:
-    type: parameterStore
-    name: next-public-switchboard-graphql-host
-    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/next-public-switchboard-graphql-host
-
 externalSecrets:
   clusterSecretStoreName: ${CLUSTER_NAME}
 

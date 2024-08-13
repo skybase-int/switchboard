@@ -65,7 +65,7 @@ env:
   JWT_SECRET:
     type: parameterStore
     name: jwt-secret
-    parameter_name: /eks/${CLUSTER_NAME}/${PP_NAME}/jwt-secret
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/jwt-secret
   JWT_EXPIRATION_PERIOD_SECONDS:
     type: parameterStore
     name: jwt-expiration-period-seconds
