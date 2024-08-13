@@ -7,8 +7,8 @@ service:
   type: ClusterIP
   containerPort: ${PORT}
   tls:
-    enabled: true
-    issuerName: cloudflare
+    enabled: false
+    # issuerName: cloudflare
 
 image:
   repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
