@@ -2,7 +2,11 @@ name: Deploy image to EKS
 description: Deploy a Docker image to an EKS cluster
 inputs:
   APP_NAME:
-    description: The name of the app (also used for the k8s namespace)
+    description: The name of the app
+    required: true
+    default: ''
+  NAMESPACE:
+    description: The k8s namespace for the app
     required: true
     default: ''
   AWS_ACCESS_KEY_ID:
@@ -89,7 +93,7 @@ runs:
         cluster-name: ${{ inputs.CLUSTER_NAME }}
         config-files: ${{ inputs.HELM_VALUES }}
         chart-path: techops-services/common
-        namespace: ${{ inputs.APP_NAME }}
+        namespace: ${{ inputs.NAMESPACE }}
         timeout: 3m0s
         name: ${{ inputs.APP_NAME }}
         chart-repository: https://techops-services.github.io/helm-charts

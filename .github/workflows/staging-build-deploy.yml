@@ -124,6 +124,7 @@ jobs:
           ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
           ECR_REPO_NAME: ${{ env.API_ECR_REPO_NAME }}
           APP_NAME: ${{ env.API_APP_NAME }}
+          NAMESPACE: ${{ env.APP_NAME }}
           HELM_VALUES: ${{ env.HELM_VALUES }}
 
   deploy-frontend:
@@ -157,6 +158,7 @@ jobs:
           ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
           ECR_REPO_NAME: ${{ env.ECR_REPO_NAME }}
           APP_NAME: ${{ env.FRONTEND_APP_NAME }}
+          NAMESPACE: ${{ env.APP_NAME }}
           HELM_VALUES: ${{ env.HELM_VALUES }}
 
   deploy-nginx:
