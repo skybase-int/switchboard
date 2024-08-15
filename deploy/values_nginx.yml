@@ -50,6 +50,10 @@ controller:
 
             client_max_body_size 64M;
         }
+
+  extraArgs:
+    nginx-plus: "false"
+
   service:
     type: "LoadBalancer"
     annotations:
