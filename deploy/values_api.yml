@@ -50,7 +50,7 @@ env:
     value: ${PORT}
   BASE_PATH:
     type: kv
-    value: "/"
+    value: "/api"
   TZ:
     type: kv
     value: "UTC"
