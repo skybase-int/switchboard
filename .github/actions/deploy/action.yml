@@ -37,10 +37,10 @@ inputs:
     description: The path to the Helm values file
     required: true
     default: ''
-  # ENDPOINT:
-  #   description: The k8s endpoint
-  #   required: true
-  #   default: ''
+  ENDPOINT:
+    description: The k8s endpoint
+    required: false
+    default: ''
   IMAGE_TAG:
     description: The tag of the image to deploy
     required: false
@@ -69,7 +69,7 @@ runs:
         CLUSTER_NAME: ${{ inputs.CLUSTER_NAME }}
         ECR_REGISTRY: ${{ inputs.ECR_REGISTRY }}
         ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
-        # ENDPOINT: ${{ inputs.ENDPOINT }}
+        ENDPOINT: ${{ inputs.ENDPOINT }}
         HELM_VALUES: ${{ inputs.HELM_VALUES }}
         IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
         PORT: ${{ inputs.PORT }}

@@ -217,3 +217,4 @@ jobs:
           APP_NAME: ${{ env.NGINX_APP_NAME }}
           NAMESPACE: ${{ env.APP_NAME }}
           HELM_VALUES: ${{ env.HELM_VALUES }}
+          ENDPOINT: ${{ env.APP_NAME }}-${{ env.ENV }}.${{ env.DOMAIN_NAME }}
