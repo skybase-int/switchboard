@@ -1,81 +1,77 @@
-controller:
+replicaCount: 2
+service:
+  enabled: true
   name: ${APP_NAME}
-  image:
-    repository: "k8s.gcr.io/ingress-nginx/controller"
-    tag: "v1.9.2"
-    pullPolicy: "IfNotPresent"
-  config:
-    entries:
-      server-snippets: |
-        server {
-            listen       ${PORT};
-            listen  [::]:${PORT};
-            server_name  ${ENDPOINT}; # Set the server name to your domain
 
-            # drives graphql endpoint
-            location ${BASE_PATH}/drives {
-                proxy_pass http://${API_APP_NAME}
-            }
-
-            # drive graphql endpoint
-            location ${BASE_PATH}/d {
-                proxy_pass http://${API_APP_NAME};
-            }
-
-            # version endpoint
-            location ${BASE_PATH}/versions {
-                proxy_pass http://${API_APP_NAME};
-            }
-
-            # drive graphql endpoint
-            location ${BASE_PATH}/h {
-                proxy_pass http://${API_APP_NAME};
-            }
-
-            # GraphQL Explorer
-            location ${BASE_PATH}/explorer {
-                proxy_pass http://${API_APP_NAME};
-            }
-
-            # Prometheus metrics
-            location ${BASE_PATH}/metrics {
-                proxy_pass http://${API_APP_NAME};
-            }
-
-            # frontend
-            location / {
-                rewrite /(.*) /$1 break;
-                proxy_pass http://${FRONTEND_APP_NAME};
-            }
-
-            client_max_body_size 64M;
-        }
-
-  extraArgs:
-    nginx-plus: "false"
-
-  service:
-    type: "LoadBalancer"
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-      service.beta.kubernetes.io/aws-load-balancer-internal: "false"
-      external-dns.alpha.kubernetes.io/hostname: ${ENDPOINT};
-    externalTrafficPolicy: "Local"
-  metrics:
+  port: ${PORT}
+  type: ClusterIP
+  containerPort: ${PORT}
+  tls:
     enabled: true
-    serviceMonitor:
-      enabled: true
-      additionalLabels:
-        release: prometheus
-  replicaCount: 2
+    issuerName: cloudflare
+
+image:
+  repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
+  tag: ${IMAGE_TAG}
+  pullPolicy: Always
 
 serviceAccount:
-  create: true
+  create: false
+
+ingress:
+  enabled: true
+  hosts:
+    - ${ENDPOINT}
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+
+httpBasicAuth:
+  enabled: false
+
+# If enabled will create Traefik Middleware and apply to Ingress
+# to redirect http to https and www to non-www
+httpWwwRedirect:
+  enabled: false
+
+podAnnotations:
+  reloader.stakater.com/auto: "true"
 
 resources:
   limits:
     cpu: 500m
-    memory: 256Mi
+    memory: 512Mi
   requests:
     cpu: 250m
-    memory: 128Mi
+    memory: 256Mi
+
+env:
+  BASE_PATH:
+    type: kv
+    value: "/api"
+  BACKEND:
+    type: kv
+    value: "http://switchboard-api.switchboard.svc.cluster.local/"
+  FRONTEND:
+    type: kv
+    value: "http://switchboard-frontend.switchboard.svc.cluster.local/"
+
+externalSecrets:
+  clusterSecretStoreName: ${CLUSTER_NAME}
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+
+autoscaling:
+  enabled: false
