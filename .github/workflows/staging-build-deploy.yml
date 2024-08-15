@@ -183,6 +183,8 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github
+            deploy/values_nginx.yml
+          sparse-checkout-cone-mode: false
 
       - name: Replace variables in Helm values file
         id: replace_vars
