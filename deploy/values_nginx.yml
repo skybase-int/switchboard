@@ -1,8 +1,8 @@
 controller:
   name: ${APP_NAME}
   image:
-    repository: "nginx/nginx-ingress"
-    tag: "stable"
+    repository: "k8s.gcr.io/ingress-nginx/controller"
+    tag: "v1.9.2"
     pullPolicy: "IfNotPresent"
   config:
     entries:
