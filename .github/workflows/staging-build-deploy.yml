@@ -172,10 +172,18 @@ jobs:
       - deploy-api
     if: always() && !cancelled() && !failure() && !contains(github.event.head_commit.message , '[skip deploy]')
     env:
-      HELM_VALUES: ${{ github.workspace }}/deploy/values_nginx.yml
+      HELM_VALUES: deploy/values_nginx.yml
       BASE_PATH: "/api"
 
     steps:
+      - name: Checkout actions
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+
       - name: Replace variables in Helm values file
         id: replace_vars
         shell: sh
@@ -193,7 +201,7 @@ jobs:
         uses: bitovi/github-actions-deploy-eks-helm@v1.2.8
         with:
           cluster-name: ${{ env.CLUSTER_NAME }}
-          config-files: ${{ github.workspace }}/deploy/values_nginx.yml
+          config-files: deploy/values_nginx.yml
           chart-path: nginx-stable/nginx-ingress
           namespace: ${{ env.APP_NAME }}
           timeout: 3m0s
