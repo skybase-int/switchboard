@@ -50,10 +50,11 @@ env:
     value: "/api"
   BACKEND:
     type: kv
-    value: "http://switchboard-api-common.switchboard.svc.cluster.local/"
+    value: "http://switchboard-api-common.switchboard.svc.cluster.local:3000/"
+
   FRONTEND:
     type: kv
-    value: "http://switchboard-frontend-common.switchboard.svc.cluster.local/"
+    value: "http://switchboard-frontend-common.switchboard.svc.cluster.local:3000"
 
 externalSecrets:
   clusterSecretStoreName: ${CLUSTER_NAME}
