@@ -8,7 +8,6 @@ service:
   containerPort: ${PORT}
   tls:
     enabled: false
-    # issuerName: cloudflare
 
 image:
   repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
@@ -20,10 +19,6 @@ serviceAccount:
 
 ingress:
   enabled: false
-  # hosts:
-  #   - ${ENDPOINT}
-  # annotations:
-  #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 
 httpBasicAuth:
   enabled: false
