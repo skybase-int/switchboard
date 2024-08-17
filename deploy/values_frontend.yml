@@ -1,0 +1,59 @@
+replicaCount: 2
+service:
+  enabled: true
+  name: ${APP_NAME}
+
+  port: ${PORT}
+  type: ClusterIP
+  containerPort: ${PORT}
+  tls:
+    enabled: false
+
+image:
+  repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
+  tag: ${IMAGE_TAG}
+  pullPolicy: Always
+
+serviceAccount:
+  create: false
+
+ingress:
+  enabled: false
+
+httpBasicAuth:
+  enabled: false
+
+# If enabled will create Traefik Middleware and apply to Ingress
+# to redirect http to https and www to non-www
+httpWwwRedirect:
+  enabled: false
+
+podAnnotations:
+  reloader.stakater.com/auto: "true"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+externalSecrets:
+  clusterSecretStoreName: ${CLUSTER_NAME}
+
+livenessProbe:
+  httpGet:
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+readinessProbe:
+  httpGet:
+    port: ${PORT}
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 10
+
+autoscaling:
+  enabled: false
