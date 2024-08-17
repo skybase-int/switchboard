@@ -19,7 +19,6 @@ env:
   API_ECR_REPO_NAME: switchboard-api-staging
   FRONTEND_ECR_REPO_NAME: switchboard-frontend-staging
   ENV: staging
-  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }} # The base domain to use for the k8s endpoints
 
 jobs:
   setup:
@@ -89,7 +88,7 @@ jobs:
           ECR_REPO_NAME: ${{ env.FRONTEND_ECR_REPO_NAME }}
           SHA_TAG: ${{ env.SHA_SHORT }}
           BUILD_CONTEXT: ./frontend
-          NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST: ${{ secrets.NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST }}
+          NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST: ${{ secrets.STAGING_NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST }}
 
   deploy-api:
     name: Deploy image for api
