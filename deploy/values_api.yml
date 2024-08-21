@@ -1,4 +1,4 @@
-replicaCount: 2
+replicaCount: ${REPLICA_COUNT}
 service:
   enabled: true
   name: ${APP_NAME}
@@ -97,4 +97,8 @@ readinessProbe:
   timeoutSeconds: 10
 
 autoscaling:
-  enabled: false
+  enabled: true
+  minReplicas: ${AUTOSCALING_MIN_REPLICAS}
+  maxReplicas: ${AUTOSCALING_MAX_REPLICAS}
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 75
