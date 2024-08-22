@@ -60,7 +60,7 @@ inputs:
   AUTOSCALING_MAX_REPLICAS:
     description: 'The maximum number of replicas to run'
     required: false
-    default: '3'
+    default: '1'
 
 runs:
   using: composite
