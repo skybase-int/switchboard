@@ -1,4 +1,4 @@
-replicaCount: ${REPLICA_COUNT}
+replicaCount: 1
 service:
   enabled: true
   name: ${APP_NAME}
@@ -11,7 +11,7 @@ service:
 
 image:
   repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
-  tag: ${IMAGE_TAG}
+  tag: '${IMAGE_TAG}'
   pullPolicy: Always
 
 serviceAccount:
@@ -33,11 +33,11 @@ podAnnotations:
 
 resources:
   limits:
-    cpu: 500m
-    memory: 512Mi
+    cpu: 0.5
+    memory: 0.5Gi
   requests:
-    cpu: 250m
-    memory: 256Mi
+    cpu: 0.25
+    memory: 0.25Gi
 
 externalSecrets:
   clusterSecretStoreName: ${CLUSTER_NAME}

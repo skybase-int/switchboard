@@ -1,4 +1,4 @@
-replicaCount: ${REPLICA_COUNT}
+replicaCount: 1
 service:
   enabled: true
   name: ${APP_NAME}
@@ -11,7 +11,7 @@ service:
 
 image:
   repository: ${ECR_REGISTRY}/${ECR_REPO_NAME}
-  tag: ${IMAGE_TAG}
+  tag: '${IMAGE_TAG}'
   pullPolicy: Always
 
 serviceAccount:
@@ -33,11 +33,11 @@ podAnnotations:
 
 resources:
   limits:
-    cpu: 500m
-    memory: 512Mi
+    cpu: 1
+    memory: 1Gi
   requests:
-    cpu: 250m
-    memory: 256Mi
+    cpu: 0.25
+    memory: 0.25Gi
 
 env:
   PORT:
@@ -97,8 +97,4 @@ readinessProbe:
   timeoutSeconds: 10
 
 autoscaling:
-  enabled: true
-  minReplicas: ${AUTOSCALING_MIN_REPLICAS}
-  maxReplicas: ${AUTOSCALING_MAX_REPLICAS}
-  targetCPUUtilizationPercentage: 75
-  targetMemoryUtilizationPercentage: 75
+  enabled: false # Can't be enabled for this app
