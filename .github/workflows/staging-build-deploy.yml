@@ -90,7 +90,6 @@ jobs:
           ECR_REPO_NAME: ${{ env.FRONTEND_ECR_REPO_NAME }}
           SHA_TAG: ${{ needs.setup.outputs.short_sha }}
           BUILD_CONTEXT: ./frontend
-          NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST: ${{ secrets.STAGING_NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST }}
 
   deploy-api:
     name: Deploy image for api
@@ -125,6 +124,7 @@ jobs:
           NAMESPACE: ${{ env.APP_NAME }}
           HELM_VALUES: ${{ env.HELM_VALUES }}
           IMAGE_TAG: ${{ ( contains(github.event.head_commit.message, '[skip build]') || github.event.inputs.skip_build ) && 'latest' || needs.setup.outputs.short_sha }} # If the build was skipped, use the `latest` image
+          SENTRY_ENV: ${{ env.ENV }}
 
   deploy-frontend:
     name: Deploy image for frontend
