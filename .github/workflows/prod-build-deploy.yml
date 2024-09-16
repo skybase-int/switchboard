@@ -125,7 +125,6 @@ jobs:
           NAMESPACE: ${{ env.APP_NAME }}
           HELM_VALUES: ${{ env.HELM_VALUES }}
           IMAGE_TAG: ${{ ( contains(github.event.head_commit.message, '[skip build]') || github.event.inputs.skip_build ) && 'latest' || needs.setup.outputs.short_sha }} # If the build was skipped, use the `latest` image
-          REPLICA_COUNT: 2
           AUTOSCALING_MAX_REPLICAS: 4
 
   deploy-frontend:
@@ -161,5 +160,4 @@ jobs:
           NAMESPACE: ${{ env.APP_NAME }}
           HELM_VALUES: ${{ env.HELM_VALUES }}
           IMAGE_TAG: ${{ ( contains(github.event.head_commit.message, '[skip build]') || github.event.inputs.skip_build ) && 'latest' || needs.setup.outputs.short_sha }} # If the build was skipped, use the `latest` image
-          REPLICA_COUNT: 2
           AUTOSCALING_MAX_REPLICAS: 4
