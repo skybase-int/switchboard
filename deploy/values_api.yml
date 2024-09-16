@@ -49,6 +49,13 @@ env:
   TZ:
     type: kv
     value: "UTC"
+  SENTRY_ENV:
+    type: kv
+    value: ${SENTRY_ENV}
+  SENTRY_DSN:
+    type: parameterStore
+    name: sentry-dsn
+    parameter_name: /eks/${CLUSTER_NAME}/${APP_NAME}/sentry-dsn
   DATABASE_URL:
     type: parameterStore
     name: database-url
