@@ -29,10 +29,6 @@ inputs:
     description: 'The build context for the Docker image'
     required: true
     default: ''
-  NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST:
-    description: 'The GraphQL host for the frontend - only required for frontend builds'
-    required: false
-    default: ''
 
 runs:
   using: 'composite'
@@ -63,5 +59,3 @@ runs:
         cache-from: type=registry,ref=${{ inputs.ECR_REGISTRY }}/${{ inputs.ECR_REPO_NAME }}:buildcache
         cache-to: type=registry,ref=${{ inputs.ECR_REGISTRY }}/${{ inputs.ECR_REPO_NAME }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
         provenance: false
-        build-args: |
-          NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST=${{ inputs.NEXT_PUBLIC_SWITCHBOARD_GRAPHQL_HOST }}

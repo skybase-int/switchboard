@@ -57,6 +57,10 @@ inputs:
     description: 'The maximum number of replicas to run'
     required: false
     default: '1'
+  SENTRY_ENV:
+    description: 'SENTRY_ENV'
+    required: true
+    default: ''
 
 runs:
   using: composite
@@ -83,6 +87,7 @@ runs:
         PORT: ${{ inputs.PORT }}
         AUTOSCALING_MIN_REPLICAS: ${{ inputs.AUTOSCALING_MIN_REPLICAS }}
         AUTOSCALING_MAX_REPLICAS: ${{ inputs.AUTOSCALING_MAX_REPLICAS }}
+        SENTRY_ENV: ${{ inputs.SENTRY_ENV }}
       run: |
         cp $HELM_VALUES temp.yml
         envsubst < temp.yml > $HELM_VALUES
