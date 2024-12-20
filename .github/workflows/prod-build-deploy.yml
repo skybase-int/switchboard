@@ -15,7 +15,6 @@ on:
   push:
     branches:
       - deployments/makerdao
-      - TECH-4278-update-resources # Remove this before opening the PR
 
 env:
   APP_NAME: switchboard
