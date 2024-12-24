@@ -35,7 +35,7 @@ resources:
   limits:
     memory: 1Gi
   requests:
-    cpu: 8m
+    cpu: 30m
     memory: 85Mi
 
 env:
@@ -64,5 +64,5 @@ autoscaling:
   enabled: true
   minReplicas: ${AUTOSCALING_MIN_REPLICAS}
   maxReplicas: ${AUTOSCALING_MAX_REPLICAS}
-  targetCPUUtilizationPercentage: 75
-  targetMemoryUtilizationPercentage: 75
+  targetCPUUtilizationPercentage: 85
+  targetMemoryUtilizationPercentage: 85
